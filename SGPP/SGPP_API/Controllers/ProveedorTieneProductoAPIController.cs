@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGPP.Application;
 using SGPP.Application.Implementation;
 using SGPP.Domain.Entities;
@@ -17,6 +18,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpGet]
+        //[Authorize]
         public async Task<IActionResult> Listar()
         {
             var relaciones = await _service.GetAll();
@@ -32,6 +34,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpGet("{idProveedor}/{idProducto}")]
+        //[Authorize]
         public async Task<IActionResult> Obtener(int idProveedor, int idProducto)
         {
             var abastecimiento = await _service.GetById(idProveedor, idProducto);
@@ -47,6 +50,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpPost]
+        //[Authorize]
         public async Task<IActionResult> Registrar(ProveedorTieneProducto relacion)
         {
             if (relacion == null)
@@ -60,6 +64,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpPut]
+        //[Authorize]
         public async Task<IActionResult> Actualizar(ProveedorTieneProducto relacion)
         {
             if (relacion == null)
@@ -73,6 +78,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpDelete("{idProveedor}/{idProducto}")]
+        //[Authorize]
         public async Task<IActionResult> Eliminar(int idProveedor, int idProducto)
         {
             if (idProveedor < 1 || idProveedor > int.MaxValue || idProducto < 1 || idProducto > int.MaxValue)

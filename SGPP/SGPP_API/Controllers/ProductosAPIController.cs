@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGPP.Application;
 using SGPP.Application.Implementation;
 using SGPP.Domain.Entities;
@@ -17,6 +18,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpGet]
+        //[Authorize]
         public async Task<IActionResult> Listar()
         {
             var productos = await _productosService.GetAll();
@@ -32,6 +34,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<IActionResult> Obtener(int id)
         {
             var producto = await _productosService.GetById(id);
@@ -47,6 +50,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpPost]
+        //[Authorize]
         public async Task<IActionResult> Registrar(Productos producto)
         {
             if (producto == null)
@@ -60,6 +64,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpPut]
+        //[Authorize]
         public async Task<IActionResult> Actualizar(Productos producto)
         {
             if (producto == null)
@@ -73,6 +78,7 @@ namespace SGPP_API.Controllers
         }
 
         [HttpDelete("{id}")]
+        //[Authorize]
         public async Task<IActionResult> Eliminar(int id)
         {
             if (id < 1 || id > int.MaxValue)

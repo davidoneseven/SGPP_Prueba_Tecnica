@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SGPP.Application;
 using SGPP.Domain.Entities;
 
@@ -16,7 +17,8 @@ namespace SGPP_API.Controllers
 		}
 
 		[HttpGet]
-		public async Task<IActionResult> Listar()
+        //[Authorize]
+        public async Task<IActionResult> Listar()
 		{
 			var proveedores = await _proveedoresService.GetAll();
 
@@ -31,6 +33,7 @@ namespace SGPP_API.Controllers
 		}
 
         [HttpGet("{id}")]
+        //[Authorize]
         public async Task<IActionResult> Obtener(int id)
         {
             var proveedor = await _proveedoresService.GetById(id);
@@ -46,7 +49,8 @@ namespace SGPP_API.Controllers
         }
 
         [HttpPost]
-		public async Task<IActionResult> Registrar(Proveedores proveedor)
+        //[Authorize]
+        public async Task<IActionResult> Registrar(Proveedores proveedor)
 		{
 			if (proveedor == null) 
 			{
@@ -59,7 +63,8 @@ namespace SGPP_API.Controllers
 		}
 
 		[HttpPut]
-		public async Task<IActionResult> Actualizar(Proveedores proveedor)
+        //[Authorize]
+        public async Task<IActionResult> Actualizar(Proveedores proveedor)
 		{
             if (proveedor == null)
             {
@@ -72,7 +77,8 @@ namespace SGPP_API.Controllers
         }
 
 		[HttpDelete("{id}")]
-		public async Task<IActionResult> Eliminar(int id)
+        //[Authorize]
+        public async Task<IActionResult> Eliminar(int id)
 		{
             if (id < 1 || id > int.MaxValue)
             {

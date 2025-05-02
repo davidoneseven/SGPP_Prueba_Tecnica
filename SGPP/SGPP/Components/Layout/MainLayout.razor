@@ -1,5 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
+@using SGPP.Services
+@inject ApiAuthService _authService
+
 <div class="page">
     <div class="sidebar">
         <NavMenu />
@@ -21,3 +24,18 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code
+{
+    private bool isAuthenticated = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender && !isAuthenticated)
+        {
+            await _authService.InitializeAsync();
+            isAuthenticated = true;
+            StateHasChanged();
+        }
+    }
+}

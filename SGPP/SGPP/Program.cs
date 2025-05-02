@@ -1,4 +1,5 @@
 using SGPP.Components;
+using SGPP.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,9 @@ builder.Services.AddRazorComponents()
 
 // HTTP Client to fetch data from the API
 builder.Services.AddHttpClient();
+
+// Services to attempt JWT Authentication
+builder.Services.AddScoped<ApiAuthService>();
 
 var app = builder.Build();
 
