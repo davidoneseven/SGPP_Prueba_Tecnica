@@ -1,0 +1,238 @@
+﻿@page "/productos"
+
+@rendermode InteractiveServer
+
+@using SGPP.Domain.Entities
+@inject IConfiguration _configuration
+@inject HttpClient _http
+@inject IJSRuntime JS
+
+<PageTitle>Productos</PageTitle>
+
+<h1>Gestión de productos</h1>
+
+<hr />
+
+<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistro">
+    <i class="bi bi-plus"></i> Nuevo
+</button>
+
+<div class="container">
+
+    <button @onclick="() => CambiarPagina(-1)" disabled="@(currentPage == 1)">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <span>Página @currentPage de @pages</span>
+    <button @onclick="() => CambiarPagina(1)" disabled="@(currentPage == pages)">
+        <i class="bi bi-arrow-right"></i>
+    </button>
+
+    <div class="row fw-bold border-bottom py-2">
+        <div class="col">ID</div>
+        <div class="col">Descripción</div>
+        <div class="col">Unidad de medida</div>
+        <div class="col">Precio unitario</div>
+        <div class="col"></div>
+    </div>
+
+    @foreach (var p in _productosPaginados)
+    {
+        <div class="row fw-bold border-bottom py-2">
+            <div class="col">@p.Id</div>
+            <div class="col">@p.Descripcion</div>
+            <div class="col">@p.UnidadDeMedida</div>
+            <div class="col">@p.PrecioUnitario</div>
+
+            <div class="col">
+                <button class="btn btn-warning btn-sm me-2" @onclick="() => SetEditedModel(p)" data-bs-toggle="modal" data-bs-target="#modalModificar">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" @onclick="() => EliminarProducto(p.Id)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+<!-- Modal de registro -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Registrar producto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <EditForm FormName="RegisterForm" OnValidSubmit="RegistrarProducto" EditContext="@_editContext">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <InputText id="descripcion" name="Descripcion" @bind-value="@model.Descripcion" class="form-control mb-2" placeholder="Descripción del producto" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unidad de medida</label>
+                        <InputText id="unidaddemedida" name="UnidadDeMedida" @bind-Value="@model.UnidadDeMedida" class="form-control mb-2" placeholder="Unidad de medida del producto" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio unitario</label>
+                        <InputNumber id="preciounitario" name="PrecioUnitario" @bind-Value="@model.PrecioUnitario" class="form-control mb-2" placeholder="Precio unitario del producto" />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!isFormValid)">Registrar</button>
+                    </div>
+
+                    <ValidationSummary />
+
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de modificación -->
+<div class="modal fade" id="modalModificar" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Modificar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <EditForm FormName="EditForm" OnValidSubmit="ModificarProducto" EditContext="@_editContext">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Descripción</label>
+                        <InputText id="descripcion" name="Descripcion" @bind-value="@model.Descripcion" class="form-control mb-2" placeholder="Descripción del producto" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Unidad de medida</label>
+                        <InputText id="unidaddemedida" name="UnidadDeMedida" @bind-Value="@model.UnidadDeMedida" class="form-control mb-2" placeholder="Unidad de medida del producto" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Precio unitario</label>
+                        <InputNumber id="preciounitario" name="PrecioUnitario" @bind-Value="@model.PrecioUnitario" class="form-control mb-2" placeholder="Precio unitario del producto" />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!isFormValid)">Modificar</button>
+                    </div>
+
+                    <ValidationSummary />
+
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code
+{
+    private List<SGPP.Domain.Entities.Productos> _productos = new();
+    private List<SGPP.Domain.Entities.Productos> _productosPaginados = new();
+    private SGPP.Domain.Entities.Productos model { get; set; } = new();
+    private EditContext _editContext;
+    private bool isFormValid = false;
+    private string endpoint = "";
+    private int pages = 1, pageSize = 5, currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(model);
+        _editContext.OnFieldChanged += (sender, args) => ValidateModel();
+
+        string apiUrl = _configuration["ApiBaseUrl"];
+        endpoint = $"{apiUrl}/productos";
+
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        _productos = await _http.GetFromJsonAsync<List<SGPP.Domain.Entities.Productos>>(endpoint);
+        _productos = _productos.OrderByDescending(p => p.Id).ToList();
+        pages = (int)Math.Ceiling(_productos.Count / (double)pageSize);
+        CargarPagina();
+        StateHasChanged();
+    }
+
+    private async Task RegistrarProducto()
+    {
+        await _http.PostAsJsonAsync(endpoint, model);
+
+        model = new SGPP.Domain.Entities.Productos();
+
+        await JS.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('modalRegistro')).hide()");
+
+        await CargarDatos();
+    }
+
+    private async Task ModificarProducto()
+    {
+        await _http.PutAsJsonAsync(endpoint, model);
+
+        model = new SGPP.Domain.Entities.Productos();
+
+        await JS.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('modalModificar')).hide()");
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarProducto(int id)
+    {
+        await _http.DeleteAsync($"{endpoint}/{id}");
+
+        await CargarDatos();
+    }
+
+    private void SetEditedModel(SGPP.Domain.Entities.Productos newModel)
+    {
+        model.Id = newModel.Id;
+        model.Descripcion = newModel.Descripcion;
+        model.UnidadDeMedida = newModel.UnidadDeMedida;
+        model.PrecioUnitario = newModel.PrecioUnitario;
+    }
+
+    private void ValidateModel()
+    {
+        isFormValid = _editContext.Validate();
+        StateHasChanged();
+    }
+
+    // Pagination methods
+    private void CargarPagina()
+    {
+        _productosPaginados = _productos.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void CambiarPagina(int opcion)
+    {
+        if (opcion == -1 && currentPage > 1)
+        {
+            currentPage--;
+        }
+        else if (opcion == 1 && currentPage < pages)
+        {
+            currentPage++;
+        }
+        CargarPagina();
+    }
+
+}

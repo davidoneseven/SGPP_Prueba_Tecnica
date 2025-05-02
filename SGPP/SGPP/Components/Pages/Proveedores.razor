@@ -1,0 +1,249 @@
+﻿@page "/proveedores"
+
+@rendermode InteractiveServer
+
+@using SGPP.Domain.Entities
+@inject IConfiguration _configuration
+@inject HttpClient _http
+@inject IJSRuntime JS
+
+<PageTitle>Proveedores</PageTitle>
+
+<h1>Gestión de proveedores</h1>
+
+<hr />
+
+<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistro">
+    <i class="bi bi-plus"></i> Nuevo
+</button>
+
+<div class="container">
+
+    <button @onclick="() => CambiarPagina(-1)" disabled="@(currentPage == 1)">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <span>Página @currentPage de @pages</span>
+    <button @onclick="() => CambiarPagina(1)" disabled="@(currentPage == pages)">
+        <i class="bi bi-arrow-right"></i>
+    </button>
+
+    <div class="row fw-bold border-bottom py-2">
+        <div class="col">ID</div>
+        <div class="col">Nombre</div>
+        <div class="col">Email</div>
+        <div class="col">Ubicación</div>
+        <div class="col">Teléfono</div>
+        <div class="col"></div>
+    </div>
+
+    @foreach(var p in _proveedoresPaginados)
+    {
+        <div class="row fw-bold border-bottom py-2">
+            <div class="col">@p.Id</div>
+            <div class="col">@p.Nombre</div>
+            <div class="col">@p.Email</div>
+            <div class="col">@p.Direccion</div>
+            <div class="col">@p.Telefono</div>
+
+            <div class="col">
+                <button class="btn btn-warning btn-sm me-2" @onclick="() => SetEditedModel(p)" data-bs-toggle="modal" data-bs-target="#modalModificar">
+                    <i class="bi bi-pencil-square"></i>
+                </button>
+                <button class="btn btn-danger btn-sm" @onclick="() => EliminarProveedor(p.Id)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+<!-- Modal de registro -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Registrar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <EditForm FormName="RegisterForm" OnValidSubmit="RegistrarProveedor" EditContext="@_editContext">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <InputText id="nombre" name="Nombre" @bind-value="@model.Nombre" class="form-control mb-2" placeholder="Nombre" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <InputText id="email" name="Email" @bind-Value="@model.Email" class="form-control mb-2" placeholder="Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <InputText id="telefono" name="Telefono" @bind-Value="@model.Telefono" class="form-control mb-2" placeholder="Teléfono" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <InputTextArea id="direccion" name="Direccion" @bind-Value="@model.Direccion" class="form-control mb-2" placeholder="Dirección" />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!isFormValid)">Registrar</button>
+                    </div>
+
+                    <ValidationSummary />
+
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de modificación -->
+<div class="modal fade" id="modalModificar" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Modificar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <EditForm FormName="EditForm" OnValidSubmit="ModificarProveedor" EditContext="@_editContext">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Nombre</label>
+                        <InputText id="nombre" name="Nombre" @bind-value="@model.Nombre" class="form-control mb-2" placeholder="Nombre" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <InputText id="email" name="Email" @bind-Value="@model.Email" class="form-control mb-2" placeholder="Email" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Teléfono</label>
+                        <InputText id="telefono" name="Telefono" @bind-Value="@model.Telefono" class="form-control mb-2" placeholder="Teléfono" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dirección</label>
+                        <InputTextArea id="direccion" name="Direccion" @bind-Value="@model.Direccion" class="form-control mb-2" placeholder="Dirección" />
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!isFormValid)">Modificar</button>
+                    </div>
+
+                    <ValidationSummary />
+
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code 
+{
+    private List<SGPP.Domain.Entities.Proveedores> _proveedores = new();
+    private List<SGPP.Domain.Entities.Proveedores> _proveedoresPaginados = new();
+    private SGPP.Domain.Entities.Proveedores model { get; set; } = new();
+    private EditContext _editContext;
+    private bool isFormValid = false;
+    private string endpoint = "";
+    private int pages = 1, pageSize = 5, currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(model);
+        _editContext.OnFieldChanged += (sender, args) => ValidateModel();
+
+        string apiUrl = _configuration["ApiBaseUrl"];
+        endpoint = $"{apiUrl}/proveedores";
+
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        _proveedores = await _http.GetFromJsonAsync<List<SGPP.Domain.Entities.Proveedores>>(endpoint);
+        _proveedores = _proveedores.OrderByDescending(p => p.Id).ToList();
+        pages = (int)Math.Ceiling(_proveedores.Count / (double)pageSize);
+        CargarPagina();
+        StateHasChanged();
+    }
+
+    private async Task RegistrarProveedor()
+    {
+        await _http.PostAsJsonAsync(endpoint, model);
+
+        model = new SGPP.Domain.Entities.Proveedores();
+
+        await JS.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('modalRegistro')).hide()");
+
+        await CargarDatos();
+    }
+
+    private async Task ModificarProveedor()
+    {
+        await _http.PutAsJsonAsync(endpoint, model);
+
+        model = new SGPP.Domain.Entities.Proveedores();
+
+        await JS.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('modalModificar')).hide()");
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarProveedor(int id)
+    {
+        await _http.DeleteAsync($"{endpoint}/{id}");
+
+        await CargarDatos();
+    }
+
+    private void SetEditedModel(SGPP.Domain.Entities.Proveedores newModel)
+    {
+        model.Id = newModel.Id;
+        model.Nombre = newModel.Nombre;
+        model.Email = newModel.Email;
+        model.Telefono = newModel.Telefono;
+        model.Direccion = newModel.Direccion;
+    }
+
+    private void ValidateModel()
+    {
+        isFormValid = _editContext.Validate();
+        StateHasChanged();
+    }
+
+    // Pagination methods
+    private void CargarPagina()
+    {
+        _proveedoresPaginados = _proveedores.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void CambiarPagina(int opcion)
+    {
+        if(opcion == -1 && currentPage > 1)
+        {
+            currentPage--;
+        }
+        else if (opcion == 1 && currentPage < pages)
+        {
+            currentPage++;
+        }
+        CargarPagina();
+    }
+
+}

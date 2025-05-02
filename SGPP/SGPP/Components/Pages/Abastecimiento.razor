@@ -1,0 +1,189 @@
+﻿@page "/abastecimiento"
+
+@rendermode InteractiveServer
+
+@using SGPP.Domain.Entities
+@inject IConfiguration _configuration
+@inject HttpClient _http
+@inject IJSRuntime JS
+
+<PageTitle>Abastecimiento</PageTitle>
+
+<h1>Gestión de abastecimiento</h1>
+
+<hr />
+
+<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalRegistro">
+    <i class="bi bi-plus"></i> Nuevo
+</button>
+
+<div class="container">
+
+    <button @onclick="() => CambiarPagina(-1)" disabled="@(currentPage == 1)">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <span>Página @currentPage de @pages</span>
+    <button @onclick="() => CambiarPagina(1)" disabled="@(currentPage == pages)">
+        <i class="bi bi-arrow-right"></i>
+    </button>
+
+    <div class="row fw-bold border-bottom py-2">
+        <div class="col">Proveedor</div>
+        <div class="col">Producto</div>
+        <div class="col"></div>
+    </div>
+
+    @foreach (var p in _abastecimientoPaginado)
+    {
+        var nombreProveedor = _proveedores.FirstOrDefault(pro => pro.Id == p.IdProveedor).Nombre;
+        var nombreProducto = _productos.FirstOrDefault(pro => pro.Id == p.IdProducto).Descripcion;
+
+        <div class="row fw-bold border-bottom py-2">
+            <div class="col">@nombreProveedor</div>
+            <div class="col">@nombreProducto</div>
+
+            <div class="col">
+                <button class="btn btn-danger btn-sm" @onclick="() => EliminarAbastecimiento(p.IdProveedor, p.IdProducto)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        </div>
+    }
+
+</div>
+
+<!-- Modal de registro -->
+<div class="modal fade" id="modalRegistro" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalLabel">Registrar proveedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <EditForm FormName="RegisterForm" OnValidSubmit="RegistrarAbastecimiento" EditContext="@_editContext">
+
+                    <DataAnnotationsValidator />
+
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor</label>
+                        <InputSelect id="idproveedor" @bind-Value="@model.IdProveedor" class="form-select">
+                            @foreach (var pro in _proveedores)
+                            {
+                                <option value="@pro.Id">@pro.Nombre</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto</label>
+                        <InputSelect id="idproducto" @bind-Value="@model.IdProducto" class="form-select">
+                            @foreach (var pro in _productos)
+                            {
+                                <option value="@pro.Id">@pro.Descripcion</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" disabled="@(!isFormValid)">Registrar</button>
+                    </div>
+
+                    <ValidationSummary />
+
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@code
+{
+    private List<SGPP.Domain.Entities.ProveedorTieneProducto> _abastecimiento = new();
+    private List<SGPP.Domain.Entities.ProveedorTieneProducto> _abastecimientoPaginado = new();
+    private SGPP.Domain.Entities.ProveedorTieneProducto model { get; set; } = new();
+    private List<SGPP.Domain.Entities.Proveedores> _proveedores = new();
+    private List<SGPP.Domain.Entities.Productos> _productos = new();
+    private EditContext _editContext;
+    private bool isFormValid = false;
+    private string endpoint = "", apiUrl = "";
+    private int pages = 1, pageSize = 5, currentPage = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(model);
+        _editContext.OnFieldChanged += (sender, args) => ValidateModel();
+
+        apiUrl = _configuration["ApiBaseUrl"];
+        endpoint = $"{apiUrl}/abastecimiento";
+
+        await CargarDatosComplementarios();
+        await CargarDatos();
+    }
+
+    private async Task CargarDatos()
+    {
+        _abastecimiento = await _http.GetFromJsonAsync<List<SGPP.Domain.Entities.ProveedorTieneProducto>>(endpoint);
+        _abastecimiento = _abastecimiento.OrderByDescending(p => p.IdProducto).ToList();
+        pages = (int)Math.Ceiling(_abastecimiento.Count / (double)pageSize);
+        CargarPagina();
+        StateHasChanged();
+    }
+
+    private async Task CargarDatosComplementarios()
+    {
+        string endpointProveedores = $"{apiUrl}/proveedores";
+        string endpointProductos = $"{apiUrl}/productos";
+
+        _proveedores = await _http.GetFromJsonAsync<List<SGPP.Domain.Entities.Proveedores>>(endpointProveedores);
+        _productos = await _http.GetFromJsonAsync<List<SGPP.Domain.Entities.Productos>>(endpointProductos);
+    }
+
+    private async Task RegistrarAbastecimiento()
+    {
+        await _http.PostAsJsonAsync(endpoint, model);
+
+        model = new SGPP.Domain.Entities.ProveedorTieneProducto();
+
+        await JS.InvokeVoidAsync("eval", "bootstrap.Modal.getInstance(document.getElementById('modalRegistro')).hide()");
+
+        await CargarDatos();
+    }
+
+    private async Task EliminarAbastecimiento(int idProveedor, int idProducto)
+    {
+        await _http.DeleteAsync($"{endpoint}/{idProveedor}/{idProducto}");
+
+        await CargarDatos();
+    }
+
+    private void ValidateModel()
+    {
+        isFormValid = _editContext.Validate();
+        StateHasChanged();
+    }
+
+    // Pagination methods
+    private void CargarPagina()
+    {
+        _abastecimientoPaginado = _abastecimiento.Skip((currentPage - 1) * pageSize).Take(pageSize).ToList();
+    }
+
+    private void CambiarPagina(int opcion)
+    {
+        if (opcion == -1 && currentPage > 1)
+        {
+            currentPage--;
+        }
+        else if (opcion == 1 && currentPage < pages)
+        {
+            currentPage++;
+        }
+        CargarPagina();
+    }
+
+}
