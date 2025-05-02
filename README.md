@@ -31,7 +31,7 @@ Este proyecto se desarrolló como parte de una prueba técnica para un puesto de
 
 ## 1. Diseño de Base de Datos (SQL)
 ### Diagrama de entidad-relación (ER).
-![Diagrama ER](Diagrama Entidad Relacion.png)
+![Diagrama ER](https://raw.githubusercontent.com/davidoneseven/SGPP_Prueba_Tecnica/refs/heads/main/Diagrama%20Entidad%20Relacion.png)
 
 ### [Script SQL para crear tablas.](SGPP/SGPP_Database/Scripts/DatabaseCreationScript.sql)
 [Abrir](SGPP/SGPP_Database/Scripts/DatabaseCreationScript.sql)
