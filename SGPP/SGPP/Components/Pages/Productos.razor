@@ -27,23 +27,25 @@
         <i class="bi bi-arrow-right"></i>
     </button>
 
-    <div class="row fw-bold border-bottom py-2">
-        <div class="col">ID</div>
-        <div class="col">Descripción</div>
-        <div class="col">Unidad de medida</div>
-        <div class="col">Precio unitario</div>
-        <div class="col"></div>
+    <hr />
+
+    <div class="row fw-bold border-bottom py-6">
+        <div class="col-1">ID</div>
+        <div class="col-5">Descripción</div>
+        <div class="col-2">Unidad de medida</div>
+        <div class="col-3">Precio unitario</div>
+        <div class="col-1"></div>
     </div>
 
     @foreach (var p in _productosPaginados)
     {
-        <div class="row fw-bold border-bottom py-2">
-            <div class="col">@p.Id</div>
-            <div class="col">@p.Descripcion</div>
-            <div class="col">@p.UnidadDeMedida</div>
-            <div class="col">@p.PrecioUnitario</div>
+        <div class="row fw-bold border-bottom py-4">
+            <div class="col-1">@p.Id</div>
+            <div class="col-5">@p.Descripcion</div>
+            <div class="col-2">@p.UnidadDeMedida</div>
+            <div class="col-3">@p.PrecioUnitario</div>
 
-            <div class="col">
+            <div class="col-1">
                 <button class="btn btn-warning btn-sm me-2" @onclick="() => SetEditedModel(p)" data-bs-toggle="modal" data-bs-target="#modalModificar">
                     <i class="bi bi-pencil-square"></i>
                 </button>

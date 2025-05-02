@@ -27,25 +27,27 @@
         <i class="bi bi-arrow-right"></i>
     </button>
 
-    <div class="row fw-bold border-bottom py-2">
-        <div class="col">ID</div>
-        <div class="col">Nombre</div>
-        <div class="col">Email</div>
-        <div class="col">Ubicación</div>
-        <div class="col">Teléfono</div>
-        <div class="col"></div>
+    <hr />
+
+    <div class="row fw-bold border-bottom py-6">
+        <div class="col-1">ID</div>
+        <div class="col-2">Nombre</div>
+        <div class="col-3">Email</div>
+        <div class="col-3">Ubicación</div>
+        <div class="col-2">Teléfono</div>
+        <div class="col-1"></div>
     </div>
 
     @foreach(var p in _proveedoresPaginados)
     {
-        <div class="row fw-bold border-bottom py-2">
-            <div class="col">@p.Id</div>
-            <div class="col">@p.Nombre</div>
-            <div class="col">@p.Email</div>
-            <div class="col">@p.Direccion</div>
-            <div class="col">@p.Telefono</div>
+        <div class="row fw-bold border-bottom py-4">
+            <div class="col-1">@p.Id</div>
+            <div class="col-2">@p.Nombre</div>
+            <div class="col-3">@p.Email</div>
+            <div class="col-3">@p.Direccion</div>
+            <div class="col-2">@p.Telefono</div>
 
-            <div class="col">
+            <div class="col-1">
                 <button class="btn btn-warning btn-sm me-2" @onclick="() => SetEditedModel(p)" data-bs-toggle="modal" data-bs-target="#modalModificar">
                     <i class="bi bi-pencil-square"></i>
                 </button>

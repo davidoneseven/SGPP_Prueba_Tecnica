@@ -27,10 +27,12 @@
         <i class="bi bi-arrow-right"></i>
     </button>
 
-    <div class="row fw-bold border-bottom py-2">
-        <div class="col">Proveedor</div>
-        <div class="col">Producto</div>
-        <div class="col"></div>
+    <hr />
+
+    <div class="row fw-bold border-bottom py-6">
+        <div class="col-5">Proveedor</div>
+        <div class="col-5">Producto</div>
+        <div class="col-2"></div>
     </div>
 
     @foreach (var p in _abastecimientoPaginado)
@@ -38,11 +40,11 @@
         var nombreProveedor = _proveedores.FirstOrDefault(pro => pro.Id == p.IdProveedor).Nombre;
         var nombreProducto = _productos.FirstOrDefault(pro => pro.Id == p.IdProducto).Descripcion;
 
-        <div class="row fw-bold border-bottom py-2">
-            <div class="col">@nombreProveedor</div>
-            <div class="col">@nombreProducto</div>
+        <div class="row fw-bold border-bottom py-4">
+            <div class="col-5">@nombreProveedor</div>
+            <div class="col-5">@nombreProducto</div>
 
-            <div class="col">
+            <div class="col-2">
                 <button class="btn btn-danger btn-sm" @onclick="() => EliminarAbastecimiento(p.IdProveedor, p.IdProducto)">
                     <i class="bi bi-trash"></i>
                 </button>
