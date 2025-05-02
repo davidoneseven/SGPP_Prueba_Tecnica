@@ -16,8 +16,8 @@
 <p align="center">
  <a href="#descripción">Descripción</a> •
  <a href="#entregables">Entregables</a> •
- <a href="#alcance">Features</a> •
- <a href="#especificaciones">Tech Stack</a> •  
+ <a href="#alcance">Alcance</a> •
+ <a href="#especificaciones">Especificaciones</a> •  
  <a href="#autor">Autor</a>
 </p>
 
